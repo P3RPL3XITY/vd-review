@@ -1,0 +1,59 @@
+<style id="x23-edit-css">
+.x23ed-toggle{position:fixed;top:50%;right:0;transform:translateY(-50%) rotate(180deg);writing-mode:vertical-rl;border-radius:0 12px 12px 0;padding:14px 8px;z-index:2147483000;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--vd-error,#c0000a);border-right:0;background:var(--vd-error,#c0000a);color:#fff;text-decoration:none;font:500 14px/20px var(--vd-font,system-ui);box-shadow:0 2px 8px rgba(0,0,0,.15);cursor:pointer}
+.x23ed-toggle:hover{background:var(--vd-on-error-variant,#930005)}.x23ed-toggle[aria-pressed="true"]{background:var(--vd-on-error-variant,#930005);border-color:var(--vd-on-error-variant,#930005)}
+.x23ed-toggle:focus-visible{outline:3px solid #1b1b1f;outline-offset:2px}
+.x23ed-on [data-x23ed]{outline:1px dashed rgba(3,94,136,.45);outline-offset:2px;cursor:text}
+.x23ed-on [data-x23ed]:focus{outline:2px solid #035e88;background:rgba(235,245,255,.6)}
+.x23ed-on .x23ed-changed{outline:1px dashed #b26b00!important;background:rgba(255,236,204,.5)}
+.x23ed-hint{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:2147483000;width:max-content;max-width:min(92vw,600px);display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 14px;border-radius:12px;background:#1b1b1f;color:#fff;font:400 14px/20px var(--vd-font,system-ui);box-shadow:0 4px 16px rgba(0,0,0,.25)}
+.x23ed-hint[hidden],.x23ed-hint [hidden]{display:none!important}
+.x23ed-msg{flex:1 1 100%;overflow-wrap:anywhere}
+.x23ed-hint button,.x23ed-hint a{border:0;border-radius:999px;padding:8px 14px;min-height:36px;box-sizing:border-box;display:inline-flex;align-items:center;font:500 13px/18px inherit;cursor:pointer;background:#fff;color:#1b1b1f;text-decoration:none}
+.x23ed-hint .x23ed-ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5)}
+.x23ed-who{display:inline-flex;align-items:center;gap:8px;flex:1 1 100%}.x23ed-name{flex:1;min-width:0;min-height:36px;border-radius:8px;border:1px solid rgba(255,255,255,.6);background:#2b2b30;color:#fff;padding:6px 10px;font:inherit}.x23ed-name:focus-visible{outline:2px solid #fff;outline-offset:1px}
+.x23ed-hint button:focus-visible,.x23ed-hint a:focus-visible{outline:2px solid #fff;outline-offset:2px}
+</style>
+<button class="x23ed-toggle" type="button" aria-pressed="false" title="Try copy in place: click any text and type">Edit copy</button>
+<div class="x23ed-hint" role="status" aria-live="polite" hidden><span class="x23ed-msg"></span><label class="x23ed-who" hidden>Your name <input type="text" class="x23ed-name" autocomplete="name" maxlength="60"></label><button type="button" class="x23ed-all x23ed-ghost" hidden>Copy text</button><button type="button" class="x23ed-undo x23ed-ghost" hidden>Undo my change</button><button type="button" class="x23ed-close x23ed-ghost">Done editing</button></div>
+<script id="x23-edit-js">(function(){
+var API='https://jvpiloteofuvotnfoyho.supabase.co/rest/v1/copy_suggestions',KEYH='sb_publishable_Zv40rD_hOYnYOXTbssEuJw_oUQYVeF1',MARKET='__PROJECT__';
+var on=false,btn=document.querySelector('.x23ed-toggle'),hint=document.querySelector('.x23ed-hint'),msg=hint.querySelector('.x23ed-msg'),bAll=hint.querySelector('.x23ed-all'),bUndo=hint.querySelector('.x23ed-undo'),who=hint.querySelector('.x23ed-who'),nameIn=hint.querySelector('.x23ed-name');
+var PAGE=(document.title||location.pathname).replace(/\s*·\s*Visit Dubai prototype\s*$/,'').slice(0,150),orig=new Map(),last=null,lastText='',shared={};
+var REVIEW_BASE='https://vd-review.vercel.app/';
+if(/claude/.test(location.hostname)||window.claude){
+ var a=document.createElement('a');a.className=btn.className;a.href=REVIEW_BASE+'__REVIEW_PATH__?edit=1';a.target='_blank';a.rel='noopener';a.textContent='Edit copy';a.title='Opens this page in the review version, where your changes are saved';btn.replaceWith(a);return;}
+var SKIP='script,style,svg,.x23ed-toggle,.x23ed-hint,.vd-sr-only,input,select,textarea,option,label';
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){return null;}}
+var DEV=ls('x23ed-dev');if(!DEV){DEV=Math.random().toString(36).slice(2,12)+Date.now().toString(36);ls('x23ed-dev',DEV);}
+nameIn.value=ls('x23ed-name')||'';nameIn.addEventListener('change',function(){ls('x23ed-name',nameIn.value.trim().slice(0,60));});
+function textEl(t){while(t&&t!==document.body){if(t.matches&&t.matches(SKIP))return null;for(var i=0;i<t.childNodes.length;i++){var n=t.childNodes[i];if(n.nodeType===3&&n.textContent.trim())return t;}t=t.parentElement;}return null;}
+function txt(el){var c=el.cloneNode(true);c.querySelectorAll('.vd-sr-only,svg').forEach(function(x){x.remove()});return c.textContent.replace(/\s+/g,' ').trim();}
+function pathOf(el){var p=[];while(el&&el!==document.body){var i=1,s=el;while((s=s.previousElementSibling))i++;p.unshift(el.tagName.toLowerCase()+':'+i);el=el.parentElement;}return p.join('>');}
+function elOf(path){var el=document.body;var parts=path.split('>');for(var k=0;k<parts.length;k++){var m=parts[k].split(':'),n=+m[1];el=el&&el.children[n-1];if(!el||el.tagName.toLowerCase()!==m[0])return null;}return el;}
+function setText(el,t){var nodes=[];(function w(n){n.childNodes.forEach(function(c){if(c.nodeType===3&&c.textContent.trim())nodes.push(c);else if(c.nodeType===1&&!c.matches('svg,.vd-sr-only'))w(c);});})(el);if(!nodes.length){el.appendChild(document.createTextNode(t));return;}nodes[0].textContent=t;for(var i=1;i<nodes.length;i++)nodes[i].textContent='';}
+function hdr(x){var h={'apikey':KEYH,'Content-Type':'application/json'};for(var k in x)h[k]=x[k];return h;}
+function post(row){return fetch(API,{method:'POST',headers:hdr({'Prefer':'return=minimal'}),body:JSON.stringify(row)}).then(function(r){if(!r.ok)throw r.status;});}
+function pull(){return fetch(API+'?select=path,text,withdrawn,device,created_at&market=eq.'+encodeURIComponent(MARKET)+'&page=eq.'+encodeURIComponent(PAGE)+'&status=eq.new&order=created_at.asc',{headers:hdr({})}).then(function(r){if(!r.ok)throw r.status;return r.json();}).then(function(rows){var per={};rows.forEach(function(r){per[r.device+'|'+r.path]=r;});shared={};Object.keys(per).forEach(function(k){var r=per[k];if(r.withdrawn)return;var c=shared[r.path];if(!c||c.created_at<r.created_at)shared[r.path]=r;});return Object.keys(shared).length;});}
+function applyShared(){Object.keys(shared).forEach(function(p){var el=elOf(p);if(!el)return;if(!orig.has(el))orig.set(el,el.innerHTML);setText(el,shared[p].text);el.classList.add('x23ed-changed');el.setAttribute('data-x23ed','');});}
+function say(t,o){o=o||{};msg.textContent=t;bUndo.hidden=!o.undo;bAll.hidden=!o.copy;who.hidden=!o.who;hint.hidden=false;}
+function revertAll(){orig.forEach(function(h,el){el.innerHTML=h;el.classList.remove('x23ed-changed');el.removeAttribute('contenteditable');});orig.clear();}
+function set(v){on=v;btn.setAttribute('aria-pressed',v);btn.textContent=v?'Done editing':'Edit copy';document.documentElement.classList.toggle('x23ed-on',v);
+ if(v){say('Loading suggestions…',{who:true});pull().then(function(n){if(!on)return;applyShared();say('Click any text and type. Changes are sent to the design team automatically when you click away.'+(n?' '+n+' suggestion'+(n>1?'s are':' is')+' already highlighted on this page.':''),{who:true});},function(){if(on)say('Click any text and type. Couldn’t load other suggestions right now.',{who:true});});}
+ else{orig.forEach(function(h,el){el.removeAttribute('contenteditable');});hint.hidden=true;}}
+btn.addEventListener('click',function(){set(!on);});hint.querySelector('.x23ed-close').addEventListener('click',function(){set(false);btn.focus();});
+document.addEventListener('click',function(e){if(!on||e.target.closest('.x23ed-toggle,.x23ed-hint'))return;var el=textEl(e.target);if(!el)return;e.preventDefault();e.stopPropagation();
+ if(!orig.has(el))orig.set(el,el.innerHTML);el.setAttribute('data-x23ed','');el.setAttribute('contenteditable','plaintext-only');if(el.contentEditable!=='plaintext-only')el.setAttribute('contenteditable','true');el.focus();},true);
+document.addEventListener('keydown',function(e){if(on&&e.key==='Enter'&&e.target.hasAttribute&&e.target.hasAttribute('data-x23ed')){e.preventDefault();e.target.blur();}},true);
+function row(p,ot,t,w){return {market:MARKET,page:PAGE,path:p,original:ot.slice(0,2000),text:t.slice(0,2000),author:(nameIn.value.trim()||ls('x23ed-name')||'').slice(0,60)||null,device:DEV.slice(0,40),withdrawn:!!w};}
+function save(el){var p=pathOf(el),t=txt(el),tmp=document.createElement('div');tmp.innerHTML=orig.get(el);var ot=txt(tmp);
+ if(t===ot){el.classList.remove('x23ed-changed');say('Back to the original copy.',{});post(row(p,ot,t,true)).catch(function(){});return;}
+ lastText=t;say('Sending…',{});
+ post(row(p,ot,t,false)).then(function(){shared[p]={text:t};say('Sent to the design team: “'+t+'”',{undo:true,who:!nameIn.value.trim()});},function(){say('Couldn’t send this one. Use Copy text and email it to the design team: “'+t+'”',{undo:true,copy:true});});}
+document.addEventListener('focusout',function(e){var el=e.target;if(!on||!el.hasAttribute||!el.hasAttribute('data-x23ed')||!el.isContentEditable)return;el.removeAttribute('contenteditable');if(orig.get(el)!==el.innerHTML){el.classList.add('x23ed-changed');last=el;save(el);}},true);
+bAll.addEventListener('click',function(){var t='Copy - '+lastText+'\n(Page: '+PAGE+')';(navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(t):Promise.reject()).then(function(){say('Copied.',{undo:true});},function(){say(t,{undo:true});});});
+bUndo.addEventListener('click',function(){if(!last)return;var el=last,p=pathOf(el),tmp=document.createElement('div');tmp.innerHTML=orig.get(el);var ot=txt(tmp);el.innerHTML=orig.get(el);el.classList.remove('x23ed-changed');delete shared[p];
+ post(row(p,ot,ot,true)).then(function(){say('Your change was withdrawn.',{});},function(){say('Change undone on screen. Couldn’t reach the server, so tell the design team to ignore it.',{});});last=null;});
+window.addEventListener('submit',function(e){if(on)e.preventDefault();},true);
+pull().then(function(){applyShared();},function(){});
+if(/[?&]edit=1/.test(location.search))setTimeout(function(){set(true);},300);
+})();</script>
