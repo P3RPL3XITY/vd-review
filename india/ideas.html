@@ -4133,6 +4133,9 @@ d.querySelectorAll('.x23-dr__row[aria-controls]').forEach(function(r){r.addEvent
 var API='https://jvpiloteofuvotnfoyho.supabase.co/rest/v1/copy_suggestions',KEYH='sb_publishable_Zv40rD_hOYnYOXTbssEuJw_oUQYVeF1',MARKET='India';
 var on=false,btn=document.querySelector('.x23ed-toggle'),hint=document.querySelector('.x23ed-hint'),msg=hint.querySelector('.x23ed-msg'),bAll=hint.querySelector('.x23ed-all'),bUndo=hint.querySelector('.x23ed-undo'),who=hint.querySelector('.x23ed-who'),nameIn=hint.querySelector('.x23ed-name');
 var PAGE=(document.title||location.pathname).replace(/\s*·\s*Visit Dubai prototype\s*$/,'').slice(0,150),orig=new Map(),last=null,lastText='',shared={};
+var REVIEW_BASE='https://vd-review.vercel.app/';
+if(/claude/.test(location.hostname)||window.claude){var mk={'UK, Germany and France':'uk/','India':'india/','GCC':'gcc/'}[MARKET]||'';var pg=/Your Dubai plan/.test(PAGE)?'plan.html':/Your ideas/.test(PAGE)?'ideas.html':/email first/.test(PAGE)?'join.html':'';
+ var a=document.createElement('a');a.className=btn.className;a.href=REVIEW_BASE+mk+pg+'?edit=1';a.target='_blank';a.rel='noopener';a.textContent='Edit copy';a.title='Opens this page in the review version, where your changes are saved';btn.replaceWith(a);return;}
 var SKIP='script,style,svg,.x23ed-toggle,.x23ed-hint,.vd-sr-only,input,select,textarea,option,label';
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){return null;}}
 var DEV=ls('x23ed-dev');if(!DEV){DEV=Math.random().toString(36).slice(2,12)+Date.now().toString(36);ls('x23ed-dev',DEV);}
@@ -4165,5 +4168,6 @@ bAll.addEventListener('click',function(){var t='Copy - '+lastText+'\n(Page: '+PA
 bUndo.addEventListener('click',function(){if(!last)return;var el=last,p=pathOf(el),tmp=document.createElement('div');tmp.innerHTML=orig.get(el);var ot=txt(tmp);el.innerHTML=orig.get(el);el.classList.remove('x23ed-changed');delete shared[p];
  post(row(p,ot,ot,true)).then(function(){say('Your change was withdrawn.',{});},function(){say('Change undone on screen. Couldn’t reach the server, so tell the design team to ignore it.',{});});last=null;});
 window.addEventListener('submit',function(e){if(on)e.preventDefault();},true);
+if(/[?&]edit=1/.test(location.search))setTimeout(function(){set(true);},300);
 })();</script>
 </body></html>
