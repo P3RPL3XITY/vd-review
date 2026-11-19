@@ -4124,11 +4124,12 @@ d.querySelectorAll('.x23-dr__row[aria-controls]').forEach(function(r){r.addEvent
 .x23ed-msg{flex:1 1 100%;overflow-wrap:anywhere}
 .x23ed-hint button,.x23ed-hint a{border:0;border-radius:999px;padding:8px 14px;min-height:36px;box-sizing:border-box;display:inline-flex;align-items:center;font:500 13px/18px inherit;cursor:pointer;background:#fff;color:#1b1b1f;text-decoration:none}
 .x23ed-hint .x23ed-ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5)}
+.x23ed-field{display:flex;flex-wrap:wrap;gap:8px;flex:1 1 100%}.x23ed-field[hidden]{display:none!important}.x23ed-field label{flex:1 1 100%;font-weight:500}.x23ed-ta{flex:1 1 100%;box-sizing:border-box;min-height:72px;border-radius:8px;border:1px solid rgba(255,255,255,.6);background:#2b2b30;color:#fff;padding:8px 10px;font:inherit;resize:vertical}.x23ed-ta:focus-visible{outline:2px solid #fff;outline-offset:1px}
 .x23ed-who{display:inline-flex;align-items:center;gap:8px;flex:1 1 100%}.x23ed-name{flex:1;min-width:0;min-height:36px;border-radius:8px;border:1px solid rgba(255,255,255,.6);background:#2b2b30;color:#fff;padding:6px 10px;font:inherit}.x23ed-name:focus-visible{outline:2px solid #fff;outline-offset:1px}
 .x23ed-hint button:focus-visible,.x23ed-hint a:focus-visible{outline:2px solid #fff;outline-offset:2px}
 </style>
 <button class="x23ed-toggle" type="button" aria-pressed="false" title="Try copy in place: click any text and type">Edit copy</button>
-<div class="x23ed-hint" role="status" aria-live="polite" hidden><span class="x23ed-msg"></span><label class="x23ed-who" hidden>Your name <input type="text" class="x23ed-name" autocomplete="name" maxlength="60"></label><button type="button" class="x23ed-all x23ed-ghost" hidden>Copy text</button><button type="button" class="x23ed-undo x23ed-ghost" hidden>Undo my change</button><button type="button" class="x23ed-close x23ed-ghost">Done editing</button></div>
+<div class="x23ed-hint" role="status" aria-live="polite" hidden><span class="x23ed-msg"></span><label class="x23ed-who" hidden>Your name <input type="text" class="x23ed-name" autocomplete="name" maxlength="60"></label><div class="x23ed-field" hidden><label for="x23ed-ta">Edit this text</label><textarea id="x23ed-ta" class="x23ed-ta" rows="3"></textarea><button type="button" class="x23ed-save">Save</button><button type="button" class="x23ed-cancel x23ed-ghost">Cancel</button></div><button type="button" class="x23ed-all x23ed-ghost" hidden>Copy text</button><button type="button" class="x23ed-undo x23ed-ghost" hidden>Undo my change</button><button type="button" class="x23ed-close x23ed-ghost">Done editing</button></div>
 <script id="x23-edit-js">(function(){
 var API='https://jvpiloteofuvotnfoyho.supabase.co/rest/v1/copy_suggestions',KEYH='sb_publishable_Zv40rD_hOYnYOXTbssEuJw_oUQYVeF1',MARKET='GCC';
 var on=false,btn=document.querySelector('.x23ed-toggle'),hint=document.querySelector('.x23ed-hint'),msg=hint.querySelector('.x23ed-msg'),bAll=hint.querySelector('.x23ed-all'),bUndo=hint.querySelector('.x23ed-undo'),who=hint.querySelector('.x23ed-who'),nameIn=hint.querySelector('.x23ed-name');
@@ -4136,14 +4137,33 @@ var PAGE=(document.title||location.pathname).replace(/\s*·\s*Visit Dubai protot
 var REVIEW_BASE='https://vd-review.vercel.app/';
 if(/claude/.test(location.hostname)||window.claude){var mk={'UK, Germany and France':'uk/','India':'india/','GCC':'gcc/'}[MARKET]||'';var pg=/Your Dubai plan/.test(PAGE)?'plan.html':/Your ideas/.test(PAGE)?'ideas.html':/email first/.test(PAGE)?'join.html':'';
  var a=document.createElement('a');a.className=btn.className;a.href=REVIEW_BASE+mk+pg+'?edit=1';a.target='_blank';a.rel='noopener';a.textContent='Edit copy';a.title='Opens this page in the review version, where your changes are saved';btn.replaceWith(a);return;}
-var SKIP='script,style,svg,.x23ed-toggle,.x23ed-hint,.vd-sr-only,input,select,textarea,option,label';
+var SKIP='script,style,svg,.x23ed-toggle,.x23ed-hint,.vd-sr-only,input,select,textarea,option,.x23ed-field';
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){return null;}}
 var DEV=ls('x23ed-dev');if(!DEV){DEV=Math.random().toString(36).slice(2,12)+Date.now().toString(36);ls('x23ed-dev',DEV);}
 nameIn.value=ls('x23ed-name')||'';nameIn.addEventListener('change',function(){ls('x23ed-name',nameIn.value.trim().slice(0,60));});
+
+var field=hint.querySelector('.x23ed-field'),ta=hint.querySelector('.x23ed-ta'),fEl=null;
+var INTER='button,a,label,summary,[role=button],[role=tab],[role=option],[role=link],[role=menuitem],[role=switch],[role=checkbox],[role=radio]';
+function openField(el){fEl=el;ta.value=txt(el);field.hidden=false;msg.textContent='This text sits on a button or card, so edit it here. The page updates as you type.';bUndo.hidden=bAll.hidden=true;who.hidden=!!nameIn.value.trim();hint.hidden=false;setTimeout(function(){ta.focus();ta.select();},30);}
+function closeField(){field.hidden=true;fEl=null;}
+ta.addEventListener('input',function(){if(fEl)setText(fEl,ta.value.replace(/\s+/g,' '));});
+ta.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();hint.querySelector('.x23ed-save').click();}if(e.key==='Escape'){e.preventDefault();hint.querySelector('.x23ed-cancel').click();}});
+hint.querySelector('.x23ed-save').addEventListener('click',function(){var el=fEl;if(!el)return;closeField();if(orig.get(el)!==el.innerHTML){el.classList.add('x23ed-changed');last=el;save(el);}else say('No change.',{});});
+hint.querySelector('.x23ed-cancel').addEventListener('click',function(){var el=fEl;if(!el)return;closeField();var tmp=document.createElement('div');tmp.innerHTML=orig.get(el);setText(el,txt(tmp));if(shared[pathOf(el)])setText(el,shared[pathOf(el)].text);say('Cancelled.',{});});
+/* keep the tab and panel usable inside open sheets and modals */
+function host(){var ds=document.querySelectorAll('dialog[open]'),d=ds.length?ds[ds.length-1]:null,parent=d||document.body,t=document.querySelector('.x23ed-toggle');if(t&&t.parentNode!==parent)parent.appendChild(t);if(hint.parentNode!==parent)parent.appendChild(hint);}
+new MutationObserver(host).observe(document.body,{attributes:true,attributeFilter:['open'],subtree:true});
 function textEl(t){while(t&&t!==document.body){if(t.matches&&t.matches(SKIP))return null;for(var i=0;i<t.childNodes.length;i++){var n=t.childNodes[i];if(n.nodeType===3&&n.textContent.trim())return t;}t=t.parentElement;}return null;}
 function txt(el){var c=el.cloneNode(true);c.querySelectorAll('.vd-sr-only,svg').forEach(function(x){x.remove()});return c.textContent.replace(/\s+/g,' ').trim();}
-function pathOf(el){var p=[];while(el&&el!==document.body){var i=1,s=el;while((s=s.previousElementSibling))i++;p.unshift(el.tagName.toLowerCase()+':'+i);el=el.parentElement;}return p.join('>');}
-function elOf(path){var el=document.body;var parts=path.split('>');for(var k=0;k<parts.length;k++){var m=parts[k].split(':'),n=+m[1];el=el&&el.children[n-1];if(!el||el.tagName.toLowerCase()!==m[0])return null;}return el;}
+function isW(n){return n&&n.nodeType===1&&n.hasAttribute('data-x23w');}
+function kids(el){return [].filter.call(el.children,function(c){return !isW(c);});}
+function tslots(el){return [].filter.call(el.childNodes,function(c){return (c.nodeType===3&&c.textContent.trim())||isW(c);});}
+function wrap(tn){var w=document.createElement('span');w.setAttribute('data-x23w','');tn.parentNode.insertBefore(w,tn);w.appendChild(tn);return w;}
+function pathOf(el){var p=[];if(isW(el)){p.unshift('~t:'+(tslots(el.parentElement).indexOf(el)+1));el=el.parentElement;}while(el&&el!==document.body){var par=el.parentElement,i=kids(par).indexOf(el)+1;p.unshift(el.tagName.toLowerCase()+':'+i);el=par;}return p.join('>');}
+function elOf(path){var el=document.body;var parts=path.split('>');for(var k=0;k<parts.length;k++){var m=parts[k].split(':'),n=+m[1];if(m[0]==='~t'){var sl=el&&tslots(el)[n-1];if(!sl)return null;return isW(sl)?sl:wrap(sl);}el=el&&kids(el)[n-1];if(!el||el.tagName.toLowerCase()!==m[0])return null;}return el;}
+function mixed(el){return [].some.call(el.children,function(c){return !isW(c)&&!c.matches('svg,.vd-sr-only')&&c.textContent.trim();});}
+function pick(el,tn){if(!el||!mixed(el))return el;if(!tn||tn.parentNode!==el){var t=[].filter.call(el.childNodes,function(c){return c.nodeType===3&&c.textContent.trim();});tn=t[0];}return tn?wrap(tn):el;}
+
 function setText(el,t){var nodes=[];(function w(n){n.childNodes.forEach(function(c){if(c.nodeType===3&&c.textContent.trim())nodes.push(c);else if(c.nodeType===1&&!c.matches('svg,.vd-sr-only'))w(c);});})(el);if(!nodes.length){el.appendChild(document.createTextNode(t));return;}nodes[0].textContent=t;for(var i=1;i<nodes.length;i++)nodes[i].textContent='';}
 function hdr(x){var h={'apikey':KEYH,'Content-Type':'application/json'};for(var k in x)h[k]=x[k];return h;}
 function post(row){return fetch(API,{method:'POST',headers:hdr({'Prefer':'return=minimal'}),body:JSON.stringify(row)}).then(function(r){if(!r.ok)throw r.status;});}
@@ -4152,11 +4172,11 @@ function applyShared(){Object.keys(shared).forEach(function(p){var el=elOf(p);if
 function say(t,o){o=o||{};msg.textContent=t;bUndo.hidden=!o.undo;bAll.hidden=!o.copy;who.hidden=!o.who;hint.hidden=false;}
 function revertAll(){orig.forEach(function(h,el){el.innerHTML=h;el.classList.remove('x23ed-changed');el.removeAttribute('contenteditable');});orig.clear();}
 function set(v){on=v;btn.setAttribute('aria-pressed',v);btn.textContent=v?'Done editing':'Edit copy';document.documentElement.classList.toggle('x23ed-on',v);
- if(v){say('Loading suggestions…',{who:true});pull().then(function(n){if(!on)return;applyShared();say('Click any text and type. Changes are sent to the design team automatically when you click away.'+(n?' '+n+' suggestion'+(n>1?'s are':' is')+' already highlighted on this page.':''),{who:true});},function(){if(on)say('Click any text and type. Couldn’t load other suggestions right now.',{who:true});});}
- else{orig.forEach(function(h,el){el.removeAttribute('contenteditable');});hint.hidden=true;}}
+ if(v){say('Loading suggestions…',{who:true});pull().then(function(n){if(!on)return;applyShared();say('Click any text and type. Changes are sent to the design team automatically. To open a card, sheet or pop-up, tap Done editing, open it, then tap Edit copy again.'+(n?' '+n+' suggestion'+(n>1?'s are':' is')+' already highlighted on this page.':''),{who:true});},function(){if(on)say('Click any text and type. Couldn’t load other suggestions right now.',{who:true});});}
+ else{if(fEl)hint.querySelector('.x23ed-cancel').click();orig.forEach(function(h,el){el.removeAttribute('contenteditable');});hint.hidden=true;}}
 btn.addEventListener('click',function(){set(!on);});hint.querySelector('.x23ed-close').addEventListener('click',function(){set(false);btn.focus();});
-document.addEventListener('click',function(e){if(!on||e.target.closest('.x23ed-toggle,.x23ed-hint'))return;var el=textEl(e.target);if(!el)return;e.preventDefault();e.stopPropagation();
- if(!orig.has(el))orig.set(el,el.innerHTML);el.setAttribute('data-x23ed','');el.setAttribute('contenteditable','plaintext-only');if(el.contentEditable!=='plaintext-only')el.setAttribute('contenteditable','true');el.focus();},true);
+document.addEventListener('click',function(e){if(!on||e.target.closest('.x23ed-toggle,.x23ed-hint'))return;var bn=null,el=textEl(e.target);if(!el&&document.elementsFromPoint){var st=document.elementsFromPoint(e.clientX,e.clientY),best=null,bd=1e9;bn=null;for(var q=0;q<st.length;q++){if(st[q].closest('.x23ed-toggle,.x23ed-hint'))break;if(st[q].matches('input,select,textarea'))continue;var cn=st[q].childNodes;for(var c=0;c<cn.length;c++){if(cn[c].nodeType!==3||!cn[c].textContent.trim())continue;var rg=document.createRange();rg.selectNodeContents(cn[c]);var rs=rg.getClientRects();for(var z=0;z<rs.length;z++){var R=rs[z];if(e.clientX>=R.left-4&&e.clientX<=R.right+4&&e.clientY>=R.top-4&&e.clientY<=R.bottom+4){var dd=Math.abs(e.clientY-(R.top+R.bottom)/2);if(dd<bd){bd=dd;best=st[q];bn=cn[c];}}}}}if(best)el=textEl(best);}if(el){if(!bn&&document.caretRangeFromPoint){var cr=document.caretRangeFromPoint(e.clientX,e.clientY);if(cr&&cr.startContainer.nodeType===3)bn=cr.startContainer;}el=pick(el,bn);}if(!el)return;e.preventDefault();e.stopPropagation();
+ if(!orig.has(el))orig.set(el,el.innerHTML);el.setAttribute('data-x23ed','');if(el.closest(INTER)){openField(el);return;}el.setAttribute('contenteditable','plaintext-only');if(el.contentEditable!=='plaintext-only')el.setAttribute('contenteditable','true');el.focus();},true);
 document.addEventListener('keydown',function(e){if(on&&e.key==='Enter'&&e.target.hasAttribute&&e.target.hasAttribute('data-x23ed')){e.preventDefault();e.target.blur();}},true);
 function row(p,ot,t,w){return {market:MARKET,page:PAGE,path:p,original:ot.slice(0,2000),text:t.slice(0,2000),author:(nameIn.value.trim()||ls('x23ed-name')||'').slice(0,60)||null,device:DEV.slice(0,40),withdrawn:!!w};}
 function save(el){var p=pathOf(el),t=txt(el),tmp=document.createElement('div');tmp.innerHTML=orig.get(el);var ot=txt(tmp);
