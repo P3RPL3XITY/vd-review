@@ -4110,9 +4110,9 @@ document.querySelectorAll('[data-menu-toggle]').forEach(function(b){b.addEventLi
 d.querySelector('.x23-dr__close').addEventListener('click',close);
 d.addEventListener('keydown',function(e){if(e.key==='Escape')close();});
 d.querySelectorAll('.x23-dr__row[aria-controls]').forEach(function(r){r.addEventListener('click',function(){var on=r.getAttribute('aria-expanded')==='true';d.querySelectorAll('.x23-dr__row[aria-controls]').forEach(function(o){o.setAttribute('aria-expanded','false');document.getElementById(o.getAttribute('aria-controls')).hidden=true;});if(!on){r.setAttribute('aria-expanded','true');document.getElementById(r.getAttribute('aria-controls')).hidden=false;}});});})();</script><style id="x23-edit-css">
-.x23ed-toggle{position:fixed;top:50%;right:0;transform:translateY(-50%) rotate(180deg);writing-mode:vertical-rl;border-radius:12px 0 0 12px;padding:14px 8px;z-index:2147483000;display:inline-flex;align-items:center;gap:8px;border:1px solid #c0c6cf;background:#fff;color:#1b1b1f;font:500 14px/20px var(--vd-font,system-ui);box-shadow:0 2px 8px rgba(0,0,0,.15);cursor:pointer}
-.x23ed-toggle[aria-pressed="true"]{background:#035e88;color:#fff;border-color:#035e88}
-.x23ed-toggle:focus-visible{outline:3px solid #035e88;outline-offset:2px}
+.x23ed-toggle{position:fixed;top:50%;right:0;transform:translateY(-50%) rotate(180deg);writing-mode:vertical-rl;border-radius:0 12px 12px 0;padding:14px 8px;z-index:2147483000;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--vd-error,#c0000a);border-right:0;background:var(--vd-error,#c0000a);color:#fff;text-decoration:none;font:500 14px/20px var(--vd-font,system-ui);box-shadow:0 2px 8px rgba(0,0,0,.15);cursor:pointer}
+.x23ed-toggle:hover{background:var(--vd-on-error-variant,#930005)}.x23ed-toggle[aria-pressed="true"]{background:var(--vd-on-error-variant,#930005);border-color:var(--vd-on-error-variant,#930005)}
+.x23ed-toggle:focus-visible{outline:3px solid #1b1b1f;outline-offset:2px}
 .x23ed-on [data-x23ed]{outline:1px dashed rgba(3,94,136,.45);outline-offset:2px;cursor:text}
 .x23ed-on [data-x23ed]:focus{outline:2px solid #035e88;background:rgba(235,245,255,.6)}
 .x23ed-on .x23ed-changed{outline:1px dashed #b26b00!important;background:rgba(255,236,204,.5)}
