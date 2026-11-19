@@ -4153,7 +4153,7 @@ function say(t,o){o=o||{};msg.textContent=t;bUndo.hidden=!o.undo;bAll.hidden=!o.
 function revertAll(){orig.forEach(function(h,el){el.innerHTML=h;el.classList.remove('x23ed-changed');el.removeAttribute('contenteditable');});orig.clear();}
 function set(v){on=v;btn.setAttribute('aria-pressed',v);btn.textContent=v?'Done editing':'Edit copy';document.documentElement.classList.toggle('x23ed-on',v);
  if(v){say('Loading suggestions…',{who:true});pull().then(function(n){if(!on)return;applyShared();say('Click any text and type. Changes are sent to the design team automatically when you click away.'+(n?' '+n+' suggestion'+(n>1?'s are':' is')+' already highlighted on this page.':''),{who:true});},function(){if(on)say('Click any text and type. Couldn’t load other suggestions right now.',{who:true});});}
- else{revertAll();hint.hidden=true;}}
+ else{orig.forEach(function(h,el){el.removeAttribute('contenteditable');});hint.hidden=true;}}
 btn.addEventListener('click',function(){set(!on);});hint.querySelector('.x23ed-close').addEventListener('click',function(){set(false);btn.focus();});
 document.addEventListener('click',function(e){if(!on||e.target.closest('.x23ed-toggle,.x23ed-hint'))return;var el=textEl(e.target);if(!el)return;e.preventDefault();e.stopPropagation();
  if(!orig.has(el))orig.set(el,el.innerHTML);el.setAttribute('data-x23ed','');el.setAttribute('contenteditable','plaintext-only');if(el.contentEditable!=='plaintext-only')el.setAttribute('contenteditable','true');el.focus();},true);
@@ -4168,6 +4168,7 @@ bAll.addEventListener('click',function(){var t='Copy - '+lastText+'\n(Page: '+PA
 bUndo.addEventListener('click',function(){if(!last)return;var el=last,p=pathOf(el),tmp=document.createElement('div');tmp.innerHTML=orig.get(el);var ot=txt(tmp);el.innerHTML=orig.get(el);el.classList.remove('x23ed-changed');delete shared[p];
  post(row(p,ot,ot,true)).then(function(){say('Your change was withdrawn.',{});},function(){say('Change undone on screen. Couldn’t reach the server, so tell the design team to ignore it.',{});});last=null;});
 window.addEventListener('submit',function(e){if(on)e.preventDefault();},true);
+pull().then(function(){applyShared();},function(){});
 if(/[?&]edit=1/.test(location.search))setTimeout(function(){set(true);},300);
 })();</script>
 </body></html>
